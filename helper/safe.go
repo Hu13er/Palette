@@ -11,6 +11,10 @@ func SafeMap(m map[string]interface{}, key string, def interface{}) interface{} 
 		if val, ok := m[key].(int); ok {
 			outp = val
 		}
+	case int64:
+		if val, ok := m[key].(int64); ok {
+			outp = val
+		}
 	case []interface{}:
 		if val, ok := m[key].([]interface{}); ok {
 			outp = val
