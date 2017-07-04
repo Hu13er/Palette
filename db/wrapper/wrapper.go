@@ -23,6 +23,8 @@ type File interface {
 	CreatedAt() time.Time
 	SetContentType(string)
 	ContentType() string
+	Metadata() (map[string]interface{}, error)
+	SetMeta(map[string]interface{}) error
 }
 
 type Database interface {

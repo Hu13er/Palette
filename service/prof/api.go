@@ -26,23 +26,17 @@ func (ps *profService) GetProfile(username string) (profile, error) {
 
 	mp, _ := result[0].(map[string]interface{})
 
-	// That may be nil.
-	getStr := func(key string) string {
-		val, _ := mp[key].(string)
-		return val
-	}
 	return profile{
 		Username:   username,
-		FullName:   getStr("fullName"),
-		Bio:        getStr("bio"),
-		Location:   getStr("location"),
-		Follows:    mp["follows"].(int64),
-		FollowedBy: mp["followedBy"].(int64),
-		// TODO
-		Wallpaper: "https://www.qdtricks.net/wp-content/uploads/2016/05/hd-road-wallpaper.jpg",
+		FullName:   helper.SafeMap(mp, "fullName", "").(string),
+		Bio:        helper.SafeMap(mp, "bio", "").(string),
+		Location:   helper.SafeMap(mp, "location", "").(string),
+		Follows:    helper.SafeMap(mp, "follows", int64(0)).(int64),
+		FollowedBy: helper.SafeMap(mp, "followedBy", int64(0)).(int64),
+		Wallpaper:  ps.fs.LargeDownloadURL(helper.SafeMap(mp, "wallpaper", "").(string)),
 		Avatars: SmallLarge{
-			Small: "http://cdn.business2community.com/wp-content/uploads/2014/04/profile-picture.jpg",
-			Large: "http://cdn.business2community.com/wp-content/uploads/2014/04/profile-picture.jpg",
+			Small: ps.fs.SmallDownloadURL(helper.SafeMap(mp, "avatar", "").(string)),
+			Large: ps.fs.LargeDownloadURL(helper.SafeMap(mp, "avatar", "").(string)),
 		},
 	}, nil
 }
@@ -110,16 +104,17 @@ func (ps *profService) Unfollow(username1, username2 string) error {
 	}
 }
 
-func (ps *profService) Post(username, title, desc string, tags []string) error {
+func (ps *profService) Post(username, source, title, desc string, tags []string) error {
 	query := ps.db.GetQuery("post")
 	artID := helper.DefaultCharset.RandomStr(30)
 
 	switch err := ps.db.Exe(query, map[string]interface{}{
-		"username": username,
-		"artID":    artID,
-		"title":    title,
-		"desc":     desc,
-		"tags":     tags,
+		"username":      username,
+		"artID":         artID,
+		"title":         title,
+		"desc":          desc,
+		"tags":          tags,
+		"displaySource": source,
 	}); err {
 	case nil:
 		return nil
@@ -143,18 +138,19 @@ func (ps *profService) GetPosts(username string, count int, cursur int64) (posts
 	case nil:
 		for _, v := range result {
 			conv := v[0].(map[string]interface{})
+
 			posts = append(posts, post{
-				ArtID:         conv["artID"].(string),
-				Title:         conv["title"].(string),
-				Desc:          conv["desc"].(string),
-				CommentsCount: conv["comments_count"].(int64),
-				LikesCount:    conv["likes_count"].(int64),
-				Date:          conv["date"].(int64),
+				ArtID:         helper.SafeMap(conv, "artID", "").(string),
+				Title:         helper.SafeMap(conv, "title", "").(string),
+				Desc:          helper.SafeMap(conv, "desc", "").(string),
+				CommentsCount: helper.SafeMap(conv, "comments_count", int64(0)).(int64),
+				LikesCount:    helper.SafeMap(conv, "likes_count", int64(0)).(int64),
+				Date:          helper.SafeMap(conv, "date", int64(0)).(int64),
 				Tags: helper.ConvInterfaceSliceToStringSlice(
 					conv["tags"].([]interface{})),
 				DisplaySource: SmallLarge{
-					Small: "",
-					Large: "",
+					Small: ps.fs.SmallDownloadURL(helper.SafeMap(conv, "displaySource", "").(string)),
+					Large: ps.fs.LargeDownloadURL(helper.SafeMap(conv, "displaySource", "").(string)),
 				},
 			})
 		}
@@ -186,17 +182,17 @@ func (ps *profService) GetTimeline(username string, count int, cursur int64) (po
 		for _, v := range result {
 			conv := v[0].(map[string]interface{})
 			posts = append(posts, post{
-				ArtID:         conv["artID"].(string),
-				Title:         conv["title"].(string),
-				Desc:          conv["desc"].(string),
-				CommentsCount: conv["comments_count"].(int64),
-				LikesCount:    conv["likes_count"].(int64),
-				Date:          conv["date"].(int64),
+				ArtID:         helper.SafeMap(conv, "artID", "").(string),
+				Title:         helper.SafeMap(conv, "title", "").(string),
+				Desc:          helper.SafeMap(conv, "desc", "").(string),
+				CommentsCount: helper.SafeMap(conv, "comments_count", int64(0)).(int64),
+				LikesCount:    helper.SafeMap(conv, "likes_count", int64(0)).(int64),
+				Date:          helper.SafeMap(conv, "date", int64(0)).(int64),
 				Tags: helper.ConvInterfaceSliceToStringSlice(
-					conv["tags"].([]interface{})),
+					helper.SafeMap(conv, "tags", []interface{}{}).([]interface{})),
 				DisplaySource: SmallLarge{
-					Small: "",
-					Large: "",
+					Small: ps.fs.SmallDownloadURL(helper.SafeMap(conv, "displaySource", "").(string)),
+					Large: ps.fs.LargeDownloadURL(helper.SafeMap(conv, "displaySource", "").(string)),
 				},
 			})
 		}

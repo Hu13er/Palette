@@ -29,8 +29,8 @@ func StartServing() {
 		checkVer   = checkVersion.New(mongo)
 		smsVerific = smsVerification.New(mongo)
 		authen     = auth.New(smsVerific, neo)
-		profile    = prof.New(authen, neo)
 		fileServ   = fileServer.New(mongo, authen)
+		profile    = prof.New(authen, fileServ, neo)
 	)
 	services := []service{checkVer, smsVerific, authen, profile, fileServ}
 

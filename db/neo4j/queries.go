@@ -147,16 +147,15 @@ var queries = map[string]string{
 			lu.comments_count = 0,
 			lu.tags = {tags},
 			lu.date = timestamp(),
-			lu.display_source_small = "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png",
-			lu.display_source_large = "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png"
+			lu.displaySource = {displaySource}
 		WITH lu, collect(secondlatestupdate) AS seconds
 		FOREACH (x IN seconds | CREATE (lu)-[:Next]->(x));
 	`,
 	"getPosts": `
 		MATCH (u:User)-[:BIND]-(p:Profile) WHERE u.username = {username}
 		WITH p
-		MATCH (p)-[:Post]-(start)-[:Next*]-(post) WHERE post.date < {cursur}
-		RETURN post ORDER BY p.date LIMIT {count};
+		MATCH (p)-[:Post]-(start)-[:Next*0..]-(post) WHERE post.date < {cursur}
+		RETURN post ORDER BY p.date DESC LIMIT {count};
 	`,
 	// WARNING: max depth is 20
 	"getTimeline": `
@@ -165,7 +164,7 @@ var queries = map[string]string{
 		MATCH (p)-[:FOLLOW*0..1]->(f:Profile)
 		WITH f
 		MATCH (f)-[:Post]-(start)-[:Next*0..20]-(post) WHERE post.date < {cursur}
-		RETURN f ORDER BY f.date LIMIT {count};
+		RETURN post ORDER BY post.date DESC LIMIT {count};
 	`,
 }
 

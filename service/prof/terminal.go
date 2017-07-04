@@ -20,9 +20,10 @@ type getProfileResponse struct {
 }
 
 type PostForm struct {
-	Title string   `json:"title"`
-	Desc  string   `json:"desc"`
-	Tags  []string `json:"tags"`
+	Title     string   `json:"title"`
+	Desc      string   `json:"desc"`
+	Tags      []string `json:"tags"`
+	FileToken string   `json:"fileToken"`
 }
 
 type CursurForm struct {

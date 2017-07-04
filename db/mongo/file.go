@@ -21,3 +21,18 @@ func (mf *mongoFile) CreatedAt() time.Time { return mf.GridFile.UploadDate() }
 func (mf *mongoFile) SetContentType(contentType string) { mf.GridFile.SetContentType(contentType) }
 
 func (mf *mongoFile) ContentType() string { return mf.GridFile.ContentType() }
+
+func (ms *mongoFile) Metadata() (map[string]interface{}, error) {
+	var result map[string]interface{}
+	err := ms.GridFile.GetMeta(&result)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (ms *mongoFile) SetMeta(meta map[string]interface{}) error {
+	ms.GridFile.SetMeta(meta)
+	return nil
+}

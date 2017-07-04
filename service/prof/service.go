@@ -8,6 +8,7 @@ import (
 	"gitlab.com/NagByte/Palette/db/wrapper"
 	"gitlab.com/NagByte/Palette/service/auth"
 	"gitlab.com/NagByte/Palette/service/common"
+	"gitlab.com/NagByte/Palette/service/fileServer"
 )
 
 type profService struct {
@@ -16,12 +17,14 @@ type profService struct {
 	db      wrapper.Database
 
 	auth auth.Auth
+	fs   fileServer.FileServer
 }
 
-func New(auth auth.Auth, db wrapper.Database) *profService {
+func New(auth auth.Auth, fs fileServer.FileServer, db wrapper.Database) *profService {
 	service := &profService{}
 	service.db = db
 	service.auth = auth
+	service.fs = fs
 	service.baseURI = "/prof"
 
 	router := mux.NewRouter()

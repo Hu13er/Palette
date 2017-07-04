@@ -124,7 +124,7 @@ func (ps *profService) postHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	switch err := ps.Post(me, form.Title, form.Desc, form.Tags); err {
+	switch err := ps.Post(me, form.FileToken, form.Title, form.Desc, form.Tags); err {
 	case nil:
 	default:
 		log.Println(err)
@@ -171,7 +171,7 @@ func (ps *profService) getTimelineHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	switch posts, nextCursur, hasNextPage, err := ps.GetPosts(me, 20, form.Cursur); err {
+	switch posts, nextCursur, hasNextPage, err := ps.GetTimeline(me, 20, form.Cursur); err {
 	case nil:
 		jsonEncoder.Encode(Pager{
 			Elements:       posts,
