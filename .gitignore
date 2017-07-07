@@ -20,3 +20,7 @@ main
 
 # Vim swap files
 *.swp
+
+# macOS:
+.DS_Store
+
