@@ -43,7 +43,6 @@ func (ps *profService) getProfileHandler(w http.ResponseWriter, r *http.Request)
 		log.Println(err)
 		w.WriteHeader(common.StatusInternalServerError)
 		jsonEncoder.Encode(common.ResponseInternalServerError)
-		log.Println("bar")
 		return
 	}
 
