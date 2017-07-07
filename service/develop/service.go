@@ -13,10 +13,10 @@ type developService struct {
 
 func New() *developService {
 	service := &developService{}
-	service.baseURI = "develop/"
+	service.baseURI = "/develop"
 
 	router := mux.NewRouter()
-	router.HandleFunc(service.baseURI+"ping/", service.pingHandler)
+	router.HandleFunc(service.baseURI+"/ping/", service.pingHandler)
 
 	service.handler = router
 

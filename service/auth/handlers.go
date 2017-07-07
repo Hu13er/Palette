@@ -53,6 +53,9 @@ func (as *authService) signUpHandler(w http.ResponseWriter, r *http.Request) {
 
 	switch err := as.Signup(deviceToken, form.Username, form.Password, form.VerificationToken); err {
 	case nil:
+	case WrongDeviceTokenError:
+		w.WriteHeader(common.StatusBadRequestError)
+		jsonEncoder.Encode(wrongDeviceTokenResponse)
 	default:
 		log.Println(err)
 		w.WriteHeader(common.StatusInternalServerError)
@@ -74,6 +77,9 @@ func (as *authService) signInHandler(w http.ResponseWriter, r *http.Request) {
 
 	switch err := as.SignDeviceIn(deviceToken, form.Username, form.Password); err {
 	case nil:
+	case WrongUsernameOrPass:
+		w.WriteHeader(common.StatusBadRequestError)
+		jsonEncoder.Encode(wrongUsernameOrPasswordResponse)
 	default:
 		w.WriteHeader(common.StatusInternalServerError)
 		jsonEncoder.Encode(common.ResponseInternalServerError)
@@ -87,6 +93,9 @@ func (as *authService) signDeviceOutHandler(w http.ResponseWriter, r *http.Reque
 
 	switch err := as.SignDeviceOut(deviceToken); err {
 	case nil:
+	case WrongDeviceTokenError:
+		w.WriteHeader(common.StatusBadRequestError)
+		jsonEncoder.Encode(wrongDeviceTokenResponse)
 	default:
 		w.WriteHeader(common.StatusInternalServerError)
 		jsonEncoder.Encode(common.ResponseInternalServerError)
@@ -102,6 +111,6 @@ func (as *authService) whoAmIHandler(w http.ResponseWriter, r *http.Request) {
 		jsonEncoder.Encode(WhoAmIResponse{result})
 	} else {
 		w.WriteHeader(common.StatusBadRequestError)
-		jsonEncoder.Encode(common.ErrorJSONResponse{ErrorDescription: "UserNotFound"})
+		jsonEncoder.Encode(wrongDeviceTokenResponse)
 	}
 }
