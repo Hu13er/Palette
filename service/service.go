@@ -9,6 +9,7 @@ import (
 	"gitlab.com/NagByte/Palette/db"
 	"gitlab.com/NagByte/Palette/service/auth"
 	"gitlab.com/NagByte/Palette/service/checkVersion"
+	"gitlab.com/NagByte/Palette/service/develop"
 	"gitlab.com/NagByte/Palette/service/fileServer"
 	"gitlab.com/NagByte/Palette/service/prof"
 	"gitlab.com/NagByte/Palette/service/smsVerification"
@@ -31,8 +32,9 @@ func StartServing() {
 		authen     = auth.New(smsVerific, neo)
 		fileServ   = fileServer.New(mongo, authen)
 		profile    = prof.New(authen, fileServ, neo)
+		dev        = develop.New()
 	)
-	services := []service{checkVer, smsVerific, authen, profile, fileServ}
+	services := []service{checkVer, smsVerific, authen, profile, fileServ, dev}
 
 	var handler http.Handler = handleServices(services)
 
