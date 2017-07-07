@@ -29,7 +29,7 @@ Palette: dependencies
 	$(GO) build -o="Palette" -ldflags="$(LD_FLAGS)" $(TARGET)
 
 kill:
-	pkill Secretary || ``
+	pkill Palette || ``
 
 pull: 
 	$(GIT) pull origin master
