@@ -1,18 +1,14 @@
 package common
 
 import (
-	"io"
-	"log"
-	"os"
+	"github.com/Hu13er/telegrus"
+	log "github.com/sirupsen/logrus"
 )
-
-var Stdlog io.Writer
 
 func init() {
 	var (
-		chatID   = ConfigInt64("TELEGRAM_CHATID")
-		token    = ConfigString("TELEGRAM_TOKEN")
-		chanSize = 32
+		chatID = ConfigInt64("TELEGRAM_CHATID")
+		token  = ConfigString("TELEGRAM_TOKEN")
 	)
 
 	if token == "" {
@@ -23,31 +19,21 @@ func init() {
 		log.Fatalln("TELEGRAM_CHATID not presented.")
 	}
 
-	telegramSteam, err := newTelegSteam(token, chatID, chanSize)
-	if err != nil {
-		log.Fatalln("Can not connect to Telegram bot")
+	if level, err := log.ParseLevel(ConfigString("LOG_LEVEL")); err == nil {
+		log.SetLevel(level)
+	} else {
+		log.SetLevel(log.DebugLevel)
 	}
 
-	stdErr := os.Stderr
+	telegramHooker := telegrus.NewHooker(token, chatID)
 
-	Stdlog = intigrate(telegramSteam, stdErr)
-
-	log.SetOutput(Stdlog)
-	log.SetFlags(log.Llongfile)
-}
-
-type intigrater []io.Writer
-
-func intigrate(args ...io.Writer) intigrater {
-	return intigrater(args)
-}
-
-func (i intigrater) Write(p []byte) (n int, err error) {
-	for _, v := range i {
-		n, err = v.Write(p)
-		if err != nil {
-			return
-		}
+	if username := ConfigString("TELEGRAM_MENTION"); username != "" {
+		telegramHooker.SetMention(map[log.Level][]string{
+			log.WarnLevel:  []string{"Huberrr"},
+			log.ErrorLevel: []string{"Huberrr"},
+			log.PanicLevel: []string{"Huberrr"},
+		})
 	}
-	return
+
+	log.AddHook(telegramHooker)
 }
