@@ -14,7 +14,13 @@
 
 package main
 
-import "gitlab.com/NagByte/Palette/cmd"
+import (
+	"gitlab.com/NagByte/Palette/cmd"
+
+	_ "gitlab.com/NagByte/Palette/common"
+	_ "gitlab.com/NagByte/Palette/db"
+	_ "gitlab.com/NagByte/Palette/helper"
+)
 
 func main() {
 	cmd.Execute()

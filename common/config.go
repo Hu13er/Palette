@@ -2,12 +2,14 @@ package common
 
 import (
 	"os"
+	"strconv"
 	"strings"
 )
 
 const prefix = "PALETTE_"
 
 func ConfigString(key string) string {
+	key = strings.ToUpper(key)
 	return os.Getenv(prefix + key)
 }
 
@@ -21,4 +23,9 @@ func ConfigBool(key string) bool {
 		}
 	}
 	return false
+}
+
+func ConfigInt64(key string) int64 {
+	outp, _ := strconv.ParseInt(ConfigString(key), 10, 32)
+	return outp
 }
