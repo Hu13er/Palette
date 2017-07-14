@@ -3,7 +3,7 @@ package db
 import (
 	"os"
 
-	"github.com/Hu13er/logger"
+	"github.com/sirupsen/logrus"
 
 	"gitlab.com/NagByte/Palette/common"
 	"gitlab.com/NagByte/Palette/db/mongo"
@@ -22,11 +22,12 @@ func init() {
 }
 
 func neoInit() {
-	log := logger.WithHeaderln("[db.neo4j.neoinit()]")
+	log := logrus.WithField("WHERE", "db.neo4j.neoinit")
+
 	var err error
 	neoURI := common.ConfigString("NEO_URI")
 	if neoURI == "" {
-		log.Error("Variable NEO_URI not presented.")
+		log.Errorln("Variable NEO_URI not presented.")
 		os.Exit(1)
 	}
 
@@ -41,12 +42,12 @@ func neoInit() {
 }
 
 func mongoInit() {
-	log := logger.WithHeaderln("[db.neo4j.mongoInit()]")
+	log := logrus.WithField("WHERE", "[db.neo4j.mongoInit()]")
 	var err error
 
 	mongoURI := common.ConfigString("MONGO_URI")
 	if mongoURI == "" {
-		log.Error("Variable MONGO_URI not presented.")
+		log.Errorln("Variable MONGO_URI not presented.")
 		os.Exit(1)
 	}
 

@@ -1,11 +1,12 @@
 package service
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
 
+	"gitlab.com/NagByte/Palette/common"
 	"gitlab.com/NagByte/Palette/db"
 	"gitlab.com/NagByte/Palette/service/auth"
 	"gitlab.com/NagByte/Palette/service/checkVersion"
@@ -21,7 +22,7 @@ type service interface {
 }
 
 func StartServing() {
-
+	log := logrus.WithField("WHERE", "[service.service.StartServing()]")
 	// serviecs:
 	var (
 		neo   = db.Neo
@@ -37,6 +38,18 @@ func StartServing() {
 	services := []service{checkVer, smsVerific, authen, profile, fileServ, dev}
 
 	var handler http.Handler = handleServices(services)
+	log.Infoln("Start Serving")
+
+	if common.ConfigBool("DEBUG") {
+		log.Warnln("TURN OFF HTTP BODY AND HEADER LOGGER ON PRODUCT")
+
+		writer := logrus.StandardLogger().Writer()
+
+		handler = requestURILoggerMiddleware(writer, handler)
+		handler = requestHeaderLoggerMiddleware(writer, handler)
+		handler = requestBodyLoggerMiddleware(writer, handler)
+		handler = responseBodyLoggerMiddleware(writer, handler)
+	}
 
 	log.Fatalln(
 		http.ListenAndServe(":2128", handler),

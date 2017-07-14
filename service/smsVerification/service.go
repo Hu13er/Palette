@@ -2,10 +2,10 @@ package smsVerification
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
 
 	vcommon "gitlab.com/NagByte/Palette/common"
 	"gitlab.com/NagByte/Palette/db/wrapper"
@@ -113,6 +113,7 @@ func (ss *smsService) isVerifiedHandler(w http.ResponseWriter, r *http.Request) 
 \***************************************/
 
 func (ss *smsService) SendVerification(phoneNumber string) error {
+	log := logrus.WithField("WHERE", "[service.smsVerification.SendVerification()]")
 	var (
 		code  = helper.NumricCharset.RandomStr(6)
 		token = helper.DefaultCharset.RandomStr(25)
@@ -124,7 +125,7 @@ func (ss *smsService) SendVerification(phoneNumber string) error {
 			return err
 		}
 	} else {
-		log.Println("verification Code:", code)
+		log.Debugln("verification Code:", code)
 	}
 
 	err := ss.db.mergeVerificationRequest(phoneNumber, code, token)
