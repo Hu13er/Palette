@@ -6,8 +6,9 @@ package auth
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
+
+	"github.com/sirupsen/logrus"
 
 	"gitlab.com/NagByte/Palette/service/common"
 )
@@ -39,6 +40,7 @@ func (as *authService) touchDeviceHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (as *authService) signUpHandler(w http.ResponseWriter, r *http.Request) {
+	log := logrus.WithField("WHERE", "service.auth.signUpHandler()")
 	jsonEncoder := json.NewEncoder(w)
 	jsonDecoder := json.NewDecoder(r.Body)
 
@@ -53,8 +55,11 @@ func (as *authService) signUpHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO: username, phoneNumber exists
 	switch err := as.Signup(deviceToken, form.Username, form.Password, form.VerificationToken); err {
 	case nil:
+	case ErrNotVerfied:
+		w.WriteHeader(common.StatusBadRequestError)
+		jsonEncoder.Encode(responseNotVerified)
 	default:
-		log.Println(err)
+		log.Errorln(err)
 		w.WriteHeader(common.StatusInternalServerError)
 		jsonEncoder.Encode(common.ResponseInternalServerError)
 	}
@@ -74,7 +79,7 @@ func (as *authService) signInHandler(w http.ResponseWriter, r *http.Request) {
 
 	switch err := as.SignDeviceIn(deviceToken, form.Username, form.Password); err {
 	case nil:
-	case WrongUsernameOrPass:
+	case ErrWrongUsernameOrPass:
 		w.WriteHeader(common.StatusBadRequestError)
 		jsonEncoder.Encode(responseWrongUsernameOrPassword)
 	default:

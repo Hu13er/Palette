@@ -14,10 +14,10 @@ import (
 
 var (
 	// Errors:
-	NoAnswerError         = io.EOF
-	NotVerfiedError       = errors.New("phoneNumberNotVerified")
-	WrongDeviceTokenError = errors.New("wrongDeviceToken")
-	WrongUsernameOrPass   = errors.New("wrongUsernameOrPassword")
+	ErrNoAnswer            = io.EOF
+	ErrNotVerfied          = errors.New("phoneNumberNotVerified")
+	ErrWrongDeviceToken    = errors.New("wrongDeviceToken")
+	ErrWrongUsernameOrPass = errors.New("wrongUsernameOrPassword")
 )
 
 // TouchDevice ensures the devices node, with
@@ -31,7 +31,7 @@ func (as *authService) TouchDevice(params map[string]interface{}) (string, bool,
 
 	result, err := as.db.QueryOne(query, params)
 	// TODO: error handeling
-	if err != nil && err != NoAnswerError {
+	if err != nil && err != ErrNoAnswer {
 		return "", false, err
 	}
 
@@ -44,8 +44,7 @@ func (as *authService) TouchDevice(params map[string]interface{}) (string, bool,
 func (as *authService) Signup(deviceToken, username, password, verificationToken string) error {
 	phoneNumber, verified := as.verifier.IsVerified(verificationToken)
 	if !verified {
-		log.Println("verific")
-		return NotVerfiedError
+		return ErrNotVerfied
 	}
 
 	query := as.db.GetQuery("signUp")
@@ -76,7 +75,7 @@ func (as *authService) SignDeviceIn(deviceToken, username, password string) erro
 	case nil:
 		return nil
 	case io.EOF:
-		return WrongUsernameOrPass
+		return ErrWrongUsernameOrPass
 	default:
 		log.Println(err)
 		return err
@@ -90,7 +89,7 @@ func (as *authService) SignDeviceOut(deviceToken string) error {
 	case nil:
 		return nil
 	case io.EOF:
-		return WrongDeviceTokenError
+		return ErrWrongDeviceToken
 	default:
 		log.Println(err)
 		return err

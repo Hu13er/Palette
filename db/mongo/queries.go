@@ -33,7 +33,7 @@ var queryFuncSet = map[string]queryFuncWithoutDB{
 			"code":        params["code"],
 		}, bson.M{
 			"$set": bson.M{
-				"verify": true,
+				"verified": true,
 			}})
 		if err != nil {
 			return nil, nil, err
