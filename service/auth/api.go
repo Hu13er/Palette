@@ -109,7 +109,16 @@ func (as *authService) WhoAmI(deviceToken string) string {
 	case nil:
 		return result[0].(string)
 	default:
-		log.Println(err)
 		return ""
+	}
+}
+
+func (as *authService) IsUniquePhoneNumber(phoneNumber string) bool {
+	query := as.db.GetQuery("isUniquePhoneNumber")
+	switch _, err := as.db.QueryOne(query, map[string]interface{}{"phoneNumber": phoneNumber}); err {
+	case nil:
+		return false
+	default:
+		return true
 	}
 }

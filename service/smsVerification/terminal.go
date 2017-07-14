@@ -1,7 +1,17 @@
 package smsVerification
 
+import (
+	"gitlab.com/NagByte/Palette/service/common"
+)
+
+var (
+	responseInvalidPhoneNumber = common.ErrorJSONResponse{ErrorDescription: "invalidPhoneNumber"}
+	responsePhoneNumberExists  = common.ErrorJSONResponse{ErrorDescription: "phoneNumberExists"}
+)
+
 type sendVerificationRequest struct {
 	PhoneNumber string `json:"phoneNumber"`
+	SignUpState bool   `json:"signUpState"`
 }
 
 type verifyPhoneRequest struct {

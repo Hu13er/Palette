@@ -52,11 +52,15 @@ var queries = map[string]string{
 		OPTIONAL MATCH (device)-[:SIGNED]->(user:User)
 		RETURN device.deviceToken, user IS NOT NULL AS signedIn;
 	`,
-	// TODO ******
 	"whoAmI": `
 		MATCH (d:Device)-[:SIGNED]-(u:User)
 		WHERE d.deviceToken = {deviceToken}
 		RETURN u.username;
+	`,
+	"isUniquePhoneNumber": `
+		MATCH (u:User)
+		WHERE u.phoneNumber = {phoneNumber}
+		RETURN u;
 	`,
 	"signDeviceIn": `
 		MATCH (d:Device) WHERE d.deviceToken = {deviceToken} 
@@ -73,7 +77,6 @@ var queries = map[string]string{
 		DELETE s
 		RETURN d;
 	`,
-	// TODO
 	"signUp": `
 		MATCH (d:Device) WHERE d.deviceToken = {deviceToken}
 		CREATE (d)-[:SIGNED]->(u:User)-[:BIND]->(p:Profile)

@@ -27,14 +27,18 @@ func StartServing() {
 	var (
 		neo   = db.Neo
 		mongo = db.Mongo
-
-		checkVer   = checkVersion.New(mongo)
-		smsVerific = smsVerification.New(mongo)
-		authen     = auth.New(smsVerific, neo)
-		fileServ   = fileServer.New(mongo, authen)
-		profile    = prof.New(authen, fileServ, neo)
-		dev        = develop.New()
 	)
+
+	checkVer := checkVersion.New(mongo)
+
+	smsVerific := smsVerification.New(mongo)
+	authen := auth.New(smsVerific, neo)
+	smsVerific.SetUniquer(authen)
+
+	fileServ := fileServer.New(mongo, authen)
+	profile := prof.New(authen, fileServ, neo)
+	dev := develop.New()
+
 	services := []service{checkVer, smsVerific, authen, profile, fileServ, dev}
 
 	var handler http.Handler = handleServices(services)

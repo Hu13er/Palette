@@ -2,6 +2,7 @@ package smsVerification
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -13,16 +14,28 @@ import (
 	"gitlab.com/NagByte/Palette/service/common"
 )
 
+var (
+	ErrPhoneNumberExists = errors.New("phoneNumberExists")
+)
+
 type SMSVerification interface {
-	SendVerification(string) error
+	SendVerification(string, bool) error
 	Verify(string, string) (string, error)
 	IsVerified(string) (string, bool)
+
+	SetUniquer(unique uniquer)
+	IsUnique(phoneNumber string) bool
 }
 
 type smsService struct {
 	db      *smsVerificationDB
 	baseURI string
 	handler http.Handler
+	unique  uniquer
+}
+
+type uniquer interface {
+	IsUniquePhoneNumber(phoneNumber string) bool
 }
 
 func New(db wrapper.Database) *smsService {
@@ -65,8 +78,14 @@ func (ss *smsService) sendVerificationHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	switch err := ss.SendVerification(form.PhoneNumber); err {
+	switch err := ss.SendVerification(form.PhoneNumber, form.SignUpState); err {
 	case nil:
+	case ErrUnsuccessfulRequest:
+		w.WriteHeader(common.StatusBadRequestError)
+		jsonEncoder.Encode(responseInvalidPhoneNumber)
+	case ErrPhoneNumberExists:
+		w.WriteHeader(common.StatusBadRequestError)
+		jsonEncoder.Encode(responsePhoneNumberExists)
 	default:
 		w.WriteHeader(common.StatusInternalServerError)
 		jsonEncoder.Encode(common.ResponseInternalServerError)
@@ -112,8 +131,13 @@ func (ss *smsService) isVerifiedHandler(w http.ResponseWriter, r *http.Request) 
 |* API:
 \***************************************/
 
-func (ss *smsService) SendVerification(phoneNumber string) error {
+func (ss *smsService) SendVerification(phoneNumber string, signUpState bool) error {
 	log := logrus.WithField("WHERE", "[service.smsVerification.SendVerification()]")
+
+	if signUpState && !ss.IsUnique(phoneNumber) {
+		return ErrPhoneNumberExists
+	}
+
 	var (
 		code  = helper.NumricCharset.RandomStr(6)
 		token = helper.DefaultCharset.RandomStr(25)
@@ -130,6 +154,14 @@ func (ss *smsService) SendVerification(phoneNumber string) error {
 
 	err := ss.db.mergeVerificationRequest(phoneNumber, code, token)
 	return err
+}
+
+func (ss *smsService) SetUniquer(unique uniquer) {
+	ss.unique = unique
+}
+
+func (ss *smsService) IsUnique(phoneNumber string) bool {
+	return ss.unique.IsUniquePhoneNumber(phoneNumber)
 }
 
 func (ss *smsService) Verify(phoneNumber, verificationCode string) (token string, err error) {

@@ -9,7 +9,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gorilla/context"
 	"gitlab.com/NagByte/Palette/service/common"
 )
 
@@ -67,7 +66,7 @@ func (as *authService) signInHandler(w http.ResponseWriter, r *http.Request) {
 	jsonEncoder := json.NewEncoder(w)
 	jsonDecoder := json.NewDecoder(r.Body)
 
-	deviceToken := context.Get(r, "deviceToken").(string)
+	deviceToken := GetDeviceToken(r)
 
 	var form signInRequest
 	if err := jsonDecoder.Decode(&form); err != nil {
@@ -89,7 +88,7 @@ func (as *authService) signInHandler(w http.ResponseWriter, r *http.Request) {
 func (as *authService) signDeviceOutHandler(w http.ResponseWriter, r *http.Request) {
 	jsonEncoder := json.NewEncoder(w)
 
-	deviceToken := context.Get(r, "deviceToken").(string)
+	deviceToken := GetDeviceToken(r)
 
 	switch err := as.SignDeviceOut(deviceToken); err {
 	case nil:
@@ -105,7 +104,7 @@ func (as *authService) signDeviceOutHandler(w http.ResponseWriter, r *http.Reque
 func (as *authService) whoAmIHandler(w http.ResponseWriter, r *http.Request) {
 	jsonEncoder := json.NewEncoder(w)
 
-	deviceToken := context.Get(r, "deviceToken").(string)
+	deviceToken := GetDeviceToken(r)
 
 	if result := as.WhoAmI(deviceToken); result != "" {
 		jsonEncoder.Encode(WhoAmIResponse{result})
