@@ -52,6 +52,11 @@ var queries = map[string]string{
 		OPTIONAL MATCH (device)-[:SIGNED]->(user:User)
 		RETURN device.deviceToken, user IS NOT NULL AS signedIn;
 	`,
+	"ensureDeviceToken": `
+		MATCH (d:Device)
+		WHERE d.deviceToken = {deviceToken}
+		RETURN d.deviceToken;
+	`,
 	"whoAmI": `
 		MATCH (d:Device)-[:SIGNED]-(u:User)
 		WHERE d.deviceToken = {deviceToken}

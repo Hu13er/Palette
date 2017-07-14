@@ -42,8 +42,6 @@ func (as *authService) TouchDevice(params map[string]interface{}) (string, bool,
 }
 
 func (as *authService) Signup(deviceToken, username, password, verificationToken string) error {
-	log.Println("In singup API.")
-	defer log.Println("out singup API")
 	phoneNumber, verified := as.verifier.IsVerified(verificationToken)
 	if !verified {
 		log.Println("verific")
@@ -59,8 +57,6 @@ func (as *authService) Signup(deviceToken, username, password, verificationToken
 	}); err {
 	case nil:
 		return nil
-	case io.EOF:
-		return WrongDeviceTokenError
 	default:
 		return err
 	}
@@ -110,6 +106,16 @@ func (as *authService) WhoAmI(deviceToken string) string {
 		return result[0].(string)
 	default:
 		return ""
+	}
+}
+
+func (as *authService) ensureDeviceToken(deviceToken string) bool {
+	query := as.db.GetQuery("ensureDeviceToken")
+	switch _, err := as.db.QueryOne(query, map[string]interface{}{"deviceToken": deviceToken}); err {
+	case nil:
+		return true
+	default:
+		return false
 	}
 }
 

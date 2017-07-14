@@ -24,7 +24,13 @@ func (as *authService) DeviceTokenNeededMiddleware(f handlerFunc) handlerFunc {
 
 		if deviceToken == "" {
 			w.WriteHeader(common.StatusBadRequestError)
-			json.NewEncoder(w).Encode(common.ErrorJSONResponse{ErrorDescription: "deviceTokenNeeded"})
+			json.NewEncoder(w).Encode(responseDeviceTokenNeeded)
+			return
+		}
+
+		if as.ensureDeviceToken(deviceToken) == false {
+			w.WriteHeader(common.StatusBadRequestError)
+			json.NewEncoder(w).Encode(responseWrongDeviceToken)
 			return
 		}
 

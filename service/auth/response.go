@@ -14,6 +14,7 @@ type WhoAmIResponse struct {
 }
 
 var (
-	wrongDeviceTokenResponse        = common.ErrorJSONResponse{ErrorDescription: "wrongDeviceToken"}
-	wrongUsernameOrPasswordResponse = common.ErrorJSONResponse{ErrorDescription: "wrongUsernameOrPassword"}
+	responseWrongDeviceToken        = common.ErrorJSONResponse{ErrorDescription: "wrongDeviceToken"}
+	responseWrongUsernameOrPassword = common.ErrorJSONResponse{ErrorDescription: "wrongUsernameOrPassword"}
+	responseDeviceTokenNeeded       = common.ErrorJSONResponse{ErrorDescription: "deviceTokenNeeded"}
 )

@@ -50,11 +50,9 @@ func (as *authService) signUpHandler(w http.ResponseWriter, r *http.Request) {
 		jsonEncoder.Encode(common.ResponseBadRequest)
 	}
 
+	// TODO: username, phoneNumber exists
 	switch err := as.Signup(deviceToken, form.Username, form.Password, form.VerificationToken); err {
 	case nil:
-	case WrongDeviceTokenError:
-		w.WriteHeader(common.StatusBadRequestError)
-		jsonEncoder.Encode(wrongDeviceTokenResponse)
 	default:
 		log.Println(err)
 		w.WriteHeader(common.StatusInternalServerError)
@@ -78,7 +76,7 @@ func (as *authService) signInHandler(w http.ResponseWriter, r *http.Request) {
 	case nil:
 	case WrongUsernameOrPass:
 		w.WriteHeader(common.StatusBadRequestError)
-		jsonEncoder.Encode(wrongUsernameOrPasswordResponse)
+		jsonEncoder.Encode(responseWrongUsernameOrPassword)
 	default:
 		w.WriteHeader(common.StatusInternalServerError)
 		jsonEncoder.Encode(common.ResponseInternalServerError)
@@ -92,9 +90,6 @@ func (as *authService) signDeviceOutHandler(w http.ResponseWriter, r *http.Reque
 
 	switch err := as.SignDeviceOut(deviceToken); err {
 	case nil:
-	case WrongDeviceTokenError:
-		w.WriteHeader(common.StatusBadRequestError)
-		jsonEncoder.Encode(wrongDeviceTokenResponse)
 	default:
 		w.WriteHeader(common.StatusInternalServerError)
 		jsonEncoder.Encode(common.ResponseInternalServerError)
@@ -110,6 +105,6 @@ func (as *authService) whoAmIHandler(w http.ResponseWriter, r *http.Request) {
 		jsonEncoder.Encode(WhoAmIResponse{result})
 	} else {
 		w.WriteHeader(common.StatusBadRequestError)
-		jsonEncoder.Encode(wrongDeviceTokenResponse)
+		jsonEncoder.Encode(responseWrongDeviceToken)
 	}
 }
