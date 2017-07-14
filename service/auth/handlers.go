@@ -28,10 +28,11 @@ func (as *authService) touchDeviceHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if deviceToken, signedIn, err := as.TouchDevice(validatedForm); err == nil {
+	if deviceToken, signedIn, username, err := as.TouchDevice(validatedForm); err == nil {
 		json.NewEncoder(w).Encode(TouchDeviceResponse{
 			DeviceToken: deviceToken,
 			SignedIn:    signedIn,
+			Username:    username,
 		})
 	} else {
 		w.WriteHeader(common.StatusInternalServerError)
@@ -52,7 +53,6 @@ func (as *authService) signUpHandler(w http.ResponseWriter, r *http.Request) {
 		jsonEncoder.Encode(common.ResponseBadRequest)
 	}
 
-	// TODO: username, phoneNumber exists
 	switch err := as.Signup(deviceToken, form.Username, form.Password, form.VerificationToken); err {
 	case nil:
 	case ErrNotVerfied:
@@ -116,6 +116,6 @@ func (as *authService) whoAmIHandler(w http.ResponseWriter, r *http.Request) {
 		jsonEncoder.Encode(WhoAmIResponse{result})
 	} else {
 		w.WriteHeader(common.StatusBadRequestError)
-		jsonEncoder.Encode(responseWrongDeviceToken)
+		jsonEncoder.Encode(responseUserIsNotRegistered)
 	}
 }

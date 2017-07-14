@@ -50,7 +50,7 @@ var queries = map[string]string{
 			device.os_version = {os_version}
 		WITH device
 		OPTIONAL MATCH (device)-[:SIGNED]->(user:User)
-		RETURN device.deviceToken, user IS NOT NULL AS signedIn;
+		RETURN device.deviceToken, user IS NOT NULL AS signedIn, user.username;
 	`,
 	"ensureDeviceToken": `
 		MATCH (d:Device)

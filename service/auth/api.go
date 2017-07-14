@@ -7,14 +7,13 @@ package auth
 import (
 	"errors"
 	"io"
-	"log"
 
 	"gitlab.com/NagByte/Palette/helper"
 )
 
 var (
 	// Errors:
-	ErrNoAnswer            = io.EOF
+	ErrNotFound            = io.EOF
 	ErrNotVerfied          = errors.New("phoneNumberNotVerified")
 	ErrWrongDeviceToken    = errors.New("wrongDeviceToken")
 	ErrWrongUsernameOrPass = errors.New("wrongUsernameOrPassword")
@@ -25,7 +24,7 @@ var (
 // TouchDevice ensures the devices node, with
 // specefic UID exists in database.
 // Returns deviceToken and Signedin state.
-func (as *authService) TouchDevice(params map[string]interface{}) (string, bool, error) {
+func (as *authService) TouchDevice(params map[string]interface{}) (string, bool, string, error) {
 
 	query := as.db.GetQuery("touchDevice")
 	maybeDeviceToken := helper.DefaultCharset.RandomStr(20)
@@ -33,14 +32,15 @@ func (as *authService) TouchDevice(params map[string]interface{}) (string, bool,
 
 	result, err := as.db.QueryOne(query, params)
 	// TODO: error handeling
-	if err != nil && err != ErrNoAnswer {
-		return "", false, err
+	if err != nil && err != ErrNotFound {
+		return "", false, "", err
 	}
 
 	deviceToken := result[0].(string)
-	signedIn := result[1].(bool)
+	signedIn, _ := result[1].(bool)
+	username, _ := result[2].(string)
 
-	return deviceToken, signedIn, nil
+	return deviceToken, signedIn, username, nil
 }
 
 func (as *authService) Signup(deviceToken, username, password, verificationToken string) error {
@@ -84,10 +84,9 @@ func (as *authService) SignDeviceIn(deviceToken, username, password string) erro
 	switch _, err := as.db.QueryOne(query, params); err {
 	case nil:
 		return nil
-	case io.EOF:
+	case ErrNotFound:
 		return ErrWrongUsernameOrPass
 	default:
-		log.Println(err)
 		return err
 	}
 }
@@ -98,10 +97,7 @@ func (as *authService) SignDeviceOut(deviceToken string) error {
 	switch _, err := as.db.QueryOne(query, map[string]interface{}{"deviceToken": deviceToken}); err {
 	case nil:
 		return nil
-	case io.EOF:
-		return ErrWrongDeviceToken
 	default:
-		log.Println(err)
 		return err
 	}
 }

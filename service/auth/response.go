@@ -7,6 +7,7 @@ import (
 type TouchDeviceResponse struct {
 	DeviceToken string `json:"deviceToken"`
 	SignedIn    bool   `json:"signed_in"`
+	Username    string `json:"username,omitempty"`
 }
 
 type WhoAmIResponse struct {
@@ -20,4 +21,5 @@ var (
 	responseNotVerified             = common.ErrorJSONResponse{ErrorDescription: "notVerified"}
 	responsePhoneNumberExists       = common.ErrorJSONResponse{ErrorDescription: "phoneNumberExists"}
 	responseUsernameExists          = common.ErrorJSONResponse{ErrorDescription: "usernameExists"}
+	responseUserIsNotRegistered     = common.ErrorJSONResponse{ErrorDescription: "userIsNotRegistered"}
 )

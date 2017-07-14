@@ -11,7 +11,7 @@ import (
 )
 
 type Auth interface {
-	TouchDevice(map[string]interface{}) (string, bool, error)
+	TouchDevice(map[string]interface{}) (string, bool, string, error)
 	Signup(string, string, string, string) error
 	SignDeviceIn(string, string, string) error
 	WhoAmI(string) string
@@ -44,7 +44,7 @@ func New(verifier smsVerification.SMSVerification, db wrapper.Database) *authSer
 		Methods("POST")
 	router.HandleFunc(service.baseURI+"/signIn/", service.DeviceTokenNeededMiddleware(service.signInHandler)).
 		Methods("POST")
-	router.HandleFunc(service.baseURI+"/signOut/", service.DeviceTokenNeededMiddleware(service.signDeviceOutHandler)).
+	router.HandleFunc(service.baseURI+"/signOut/", service.AuthenticationNeededMiddleware(service.signDeviceOutHandler)).
 		Methods("POST")
 	router.HandleFunc(service.baseURI+"/whoAmI/", service.DeviceTokenNeededMiddleware(service.whoAmIHandler)).
 		Methods("GET")
