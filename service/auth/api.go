@@ -18,6 +18,8 @@ var (
 	ErrNotVerfied          = errors.New("phoneNumberNotVerified")
 	ErrWrongDeviceToken    = errors.New("wrongDeviceToken")
 	ErrWrongUsernameOrPass = errors.New("wrongUsernameOrPassword")
+	ErrUsernameExists      = errors.New("usernameExists")
+	ErrPhoneNumberExists   = errors.New("phoneNumberExists")
 )
 
 // TouchDevice ensures the devices node, with
@@ -45,6 +47,14 @@ func (as *authService) Signup(deviceToken, username, password, verificationToken
 	phoneNumber, verified := as.verifier.IsVerified(verificationToken)
 	if !verified {
 		return ErrNotVerfied
+	}
+
+	if !as.IsUniqueUsername(username) {
+		return ErrUsernameExists
+	}
+
+	if !as.IsUniquePhoneNumber(phoneNumber) {
+		return ErrPhoneNumberExists
 	}
 
 	query := as.db.GetQuery("signUp")
@@ -121,6 +131,16 @@ func (as *authService) ensureDeviceToken(deviceToken string) bool {
 func (as *authService) IsUniquePhoneNumber(phoneNumber string) bool {
 	query := as.db.GetQuery("isUniquePhoneNumber")
 	switch _, err := as.db.QueryOne(query, map[string]interface{}{"phoneNumber": phoneNumber}); err {
+	case nil:
+		return false
+	default:
+		return true
+	}
+}
+
+func (as *authService) IsUniqueUsername(username string) bool {
+	query := as.db.GetQuery("isUniqueUsername")
+	switch _, err := as.db.QueryOne(query, map[string]interface{}{"username": username}); err {
 	case nil:
 		return false
 	default:

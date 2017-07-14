@@ -18,4 +18,6 @@ var (
 	responseWrongUsernameOrPassword = common.ErrorJSONResponse{ErrorDescription: "wrongUsernameOrPassword"}
 	responseDeviceTokenNeeded       = common.ErrorJSONResponse{ErrorDescription: "deviceTokenNeeded"}
 	responseNotVerified             = common.ErrorJSONResponse{ErrorDescription: "notVerified"}
+	responsePhoneNumberExists       = common.ErrorJSONResponse{ErrorDescription: "phoneNumberExists"}
+	responseUsernameExists          = common.ErrorJSONResponse{ErrorDescription: "usernameExists"}
 )

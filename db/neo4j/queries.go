@@ -67,6 +67,11 @@ var queries = map[string]string{
 		WHERE u.phoneNumber = {phoneNumber}
 		RETURN u;
 	`,
+	"isUniqueUsername": `
+		MATCH (u:User)
+		WHERE u.username = {username}
+		RETURN u;
+	`,
 	"signDeviceIn": `
 		MATCH (d:Device) WHERE d.deviceToken = {deviceToken} 
 		WITH d

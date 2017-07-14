@@ -58,6 +58,12 @@ func (as *authService) signUpHandler(w http.ResponseWriter, r *http.Request) {
 	case ErrNotVerfied:
 		w.WriteHeader(common.StatusBadRequestError)
 		jsonEncoder.Encode(responseNotVerified)
+	case ErrUsernameExists:
+		w.WriteHeader(common.StatusBadRequestError)
+		jsonEncoder.Encode(responseUsernameExists)
+	case ErrPhoneNumberExists:
+		w.WriteHeader(common.StatusBadRequestError)
+		jsonEncoder.Encode(responsePhoneNumberExists)
 	default:
 		log.Errorln(err)
 		w.WriteHeader(common.StatusInternalServerError)
