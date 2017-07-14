@@ -3,6 +3,7 @@ package smsVerification
 import (
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -15,7 +16,8 @@ import (
 )
 
 var (
-	ErrPhoneNumberExists = errors.New("phoneNumberExists")
+	ErrPhoneNumberExists                  = errors.New("phoneNumberExists")
+	ErrWrongPhoneNumberOrVerificationCode = errors.New("wrongPhoneNumberOrVerificationCode")
 )
 
 type SMSVerification interface {
@@ -106,6 +108,9 @@ func (ss *smsService) verifyPhoneHandler(w http.ResponseWriter, r *http.Request)
 	switch token, err := ss.Verify(form.PhoneNumber, form.VerificationCode); err {
 	case nil:
 		jsonEncoder.Encode(verifyPhoneResponse{Token: token})
+	case ErrWrongPhoneNumberOrVerificationCode:
+		w.WriteHeader(common.StatusBadRequestError)
+		jsonEncoder.Encode(responseWrongPhoneNumberOrVerificationCode)
 	default:
 		w.WriteHeader(common.StatusInternalServerError)
 		jsonEncoder.Encode(common.ResponseInternalServerError)
@@ -165,7 +170,15 @@ func (ss *smsService) IsUnique(phoneNumber string) bool {
 }
 
 func (ss *smsService) Verify(phoneNumber, verificationCode string) (token string, err error) {
-	return ss.db.verifyRequest(phoneNumber, verificationCode)
+	token, err = ss.db.verifyRequest(phoneNumber, verificationCode)
+	switch err {
+	case nil:
+		return token, nil
+	case io.EOF:
+		return "", ErrWrongPhoneNumberOrVerificationCode
+	default:
+		return "", err
+	}
 }
 
 func (ss *smsService) IsVerified(verificationToken string) (string, bool) {

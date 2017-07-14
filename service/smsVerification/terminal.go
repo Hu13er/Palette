@@ -5,8 +5,9 @@ import (
 )
 
 var (
-	responseInvalidPhoneNumber = common.ErrorJSONResponse{ErrorDescription: "invalidPhoneNumber"}
-	responsePhoneNumberExists  = common.ErrorJSONResponse{ErrorDescription: "phoneNumberExists"}
+	responseInvalidPhoneNumber                 = common.ErrorJSONResponse{ErrorDescription: "invalidPhoneNumber"}
+	responsePhoneNumberExists                  = common.ErrorJSONResponse{ErrorDescription: "phoneNumberExists"}
+	responseWrongPhoneNumberOrVerificationCode = common.ErrorJSONResponse{ErrorDescription: "wrongPhoneNumberOrVerificationCode"}
 )
 
 type sendVerificationRequest struct {

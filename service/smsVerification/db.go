@@ -9,7 +9,7 @@ type smsVerificationDB struct {
 }
 
 func (svd *smsVerificationDB) mergeVerificationRequest(phoneNumber, code, token string) error {
-	
+
 	query := svd.GetQuery("mergeVerificationRequest")
 	err := svd.Exe(query, map[string]interface{}{
 		"phoneNumber": phoneNumber,
