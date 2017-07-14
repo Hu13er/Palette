@@ -21,6 +21,7 @@ func (ps *profService) GetProfile(username string) (profile, error) {
 	query := ps.db.GetQuery("getProfile")
 	result, err := ps.db.QueryOne(query, map[string]interface{}{"username": username})
 	switch err {
+	case nil:
 	case ErrNotFound:
 		return profile{}, ErrUsernameNotFound
 	default:

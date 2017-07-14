@@ -55,9 +55,15 @@ func (fs *fileServ) ReadFile(id string, w io.Writer) (starter func() error, cont
 }
 
 func (fs *fileServ) SmallDownloadURL(fileToken string) string {
+	if fileToken == "" {
+		return ""
+	}
 	return fmt.Sprintf("%s/download/small/%s/", fs.baseURI, fileToken)
 }
 
 func (fs *fileServ) LargeDownloadURL(fileToken string) string {
+	if fileToken == "" {
+		return ""
+	}
 	return fmt.Sprintf("%s/download/large/%s/", fs.baseURI, fileToken)
 }
