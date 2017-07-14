@@ -80,7 +80,13 @@ func (ss *smsService) sendVerificationHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	switch err := ss.SendVerification(form.PhoneNumber, form.SignUpState); err {
+	// TODO: iOS can not send true.
+	signUpState := false
+	if form.SignUpState == "YES" {
+		signUpState = true
+	}
+
+	switch err := ss.SendVerification(form.PhoneNumber, signUpState); err {
 	case nil:
 	case ErrUnsuccessfulRequest:
 		w.WriteHeader(common.StatusBadRequestError)

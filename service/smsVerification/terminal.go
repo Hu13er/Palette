@@ -12,7 +12,7 @@ var (
 
 type sendVerificationRequest struct {
 	PhoneNumber string `json:"phoneNumber"`
-	SignUpState bool   `json:"signUpState"`
+	SignUpState string `json:"signUpState"`
 }
 
 type verifyPhoneRequest struct {
