@@ -17,8 +17,8 @@ var (
 )
 
 func init() {
-	neoInit()
 	mongoInit()
+	neoInit()
 }
 
 func neoInit() {
@@ -58,4 +58,6 @@ func mongoInit() {
 	}
 
 	Mongo.Init()
+
+	common.AddMongoHooker(mongoURI, "palette", "log")
 }

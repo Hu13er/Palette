@@ -3,6 +3,7 @@ package common
 import (
 	"github.com/Hu13er/telegrus"
 	"github.com/sirupsen/logrus"
+	"github.com/weekface/mgorus"
 )
 
 func init() {
@@ -33,4 +34,14 @@ func init() {
 	}
 
 	logrus.AddHook(telegramHooker)
+}
+
+func AddMongoHooker(uri, dbName, collection string) error {
+	hooker, err := mgorus.NewHooker(uri, dbName, collection)
+	if err != nil {
+		return err
+	}
+
+	logrus.AddHook(hooker)
+	return nil
 }
