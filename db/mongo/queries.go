@@ -15,7 +15,7 @@ var queryFuncSet = map[string]queryFuncWithoutDB{
 	},
 	// Sms Verification:
 	"mergeVerificationRequest": func(db *mgo.Database, params map[string]interface{}) (*mgo.Query, slicerFunc, error) {
-		_, err := db.C("smsVerfication").Upsert(bson.M{
+		_, err := db.C("smsVerification").Upsert(bson.M{
 			"phoneNumber": params["phoneNumber"],
 		}, bson.M{
 			"$set": bson.M{
