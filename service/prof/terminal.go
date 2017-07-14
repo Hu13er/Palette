@@ -1,5 +1,13 @@
 package prof
 
+import (
+	"gitlab.com/NagByte/Palette/service/common"
+)
+
+var (
+	responseUserNotFound = common.ErrorJSONResponse{ErrorDescription: "userNotFound"}
+)
+
 type Pager struct {
 	HasNextPage    bool        `joson:"has_next_page"`
 	Elements       interface{} `json:"elements"`

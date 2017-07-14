@@ -118,7 +118,8 @@ var queries = map[string]string{
 				u.location   = "",
 				u.followedBy = 0,
 				u.follows    = 0
-		SET p += {change};
+		SET p += {change}
+		RETURN u;
 	`,
 	"isFollowedBy": `
 		OPTIONAL MATCH (u1:User)-[:BIND]-(p1:Profile)-[f:FOLLOW]->(p2:Profile)-[:BIND]-(u2:User)
@@ -162,7 +163,8 @@ var queries = map[string]string{
 			lu.date = timestamp(),
 			lu.displaySource = {displaySource}
 		WITH lu, collect(secondlatestupdate) AS seconds
-		FOREACH (x IN seconds | CREATE (lu)-[:Next]->(x));
+		FOREACH (x IN seconds | CREATE (lu)-[:Next]->(x))
+		RETURN u;
 	`,
 	"getPosts": `
 		MATCH (u:User)-[:BIND]-(p:Profile) WHERE u.username = {username}

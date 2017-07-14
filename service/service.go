@@ -47,7 +47,7 @@ func StartServing() {
 	if common.ConfigBool("DEBUG") {
 		log.Warnln("TURN OFF HTTP BODY AND HEADER LOGGER ON PRODUCT")
 
-		writer := logrus.StandardLogger().Writer()
+		writer := logrus.StandardLogger().WriterLevel(logrus.DebugLevel)
 
 		handler = requestURILoggerMiddleware(writer, handler)
 		handler = requestHeaderLoggerMiddleware(writer, handler)

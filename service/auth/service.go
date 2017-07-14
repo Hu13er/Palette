@@ -15,7 +15,9 @@ type Auth interface {
 	Signup(string, string, string, string) error
 	SignDeviceIn(string, string, string) error
 	WhoAmI(string) string
+
 	IsUniquePhoneNumber(string) bool
+	IsUniqueUsername(string) bool
 
 	DeviceTokenNeededMiddleware(handlerFunc) handlerFunc
 	AuthenticationNeededMiddleware(handlerFunc) handlerFunc

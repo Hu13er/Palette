@@ -7,20 +7,23 @@ package prof
 import (
 	"errors"
 	"io"
-	"log"
 	"time"
 
 	"gitlab.com/NagByte/Palette/helper"
 )
 
 var (
-	UsernameNotFoundErr = errors.New("UsernameNotFound")
+	ErrNotFound         = io.EOF
+	ErrUsernameNotFound = errors.New("UsernameNotFound")
 )
 
 func (ps *profService) GetProfile(username string) (profile, error) {
 	query := ps.db.GetQuery("getProfile")
 	result, err := ps.db.QueryOne(query, map[string]interface{}{"username": username})
-	if err != nil {
+	switch err {
+	case ErrNotFound:
+		return profile{}, ErrUsernameNotFound
+	default:
 		return profile{}, err
 	}
 
@@ -42,7 +45,6 @@ func (ps *profService) GetProfile(username string) (profile, error) {
 }
 
 func (ps *profService) IsFollowedBy(username1, username2 string) (bool, error) {
-	log.Println("Calling", username1, username2)
 	query := ps.db.GetQuery("isFollowedBy")
 	result, err := ps.db.QueryOne(query, map[string]interface{}{"username1": username1, "username2": username2})
 	if err != nil {
@@ -68,8 +70,13 @@ func (ps *profService) UpdateProfile(username, fullName, bio, location string) e
 		change["location"] = location
 	}
 
-	err := ps.db.Exe(query, map[string]interface{}{"username": username, "change": change})
-	return err
+	_, err := ps.db.QueryOne(query, map[string]interface{}{"username": username, "change": change})
+	switch err {
+	case ErrNotFound:
+		return ErrUsernameNotFound
+	default:
+		return err
+	}
 }
 
 func (ps *profService) UpdateWallpaper(username string, reader io.Reader) error {
@@ -82,11 +89,10 @@ func (ps *profService) UpdateAvatar(username string, reader io.Reader) error {
 
 func (ps *profService) Follow(username1, username2 string) error {
 	query := ps.db.GetQuery("follow")
-	switch _, err := ps.db.QueryOne(query, map[string]interface{}{"username1": username1, "username2": username2}); err {
-	case nil:
-		return nil
-	case io.EOF:
-		return UsernameNotFoundErr
+	_, err := ps.db.QueryOne(query, map[string]interface{}{"username1": username1, "username2": username2})
+	switch err {
+	case ErrNotFound:
+		return ErrUsernameNotFound
 	default:
 		return err
 	}
@@ -94,11 +100,10 @@ func (ps *profService) Follow(username1, username2 string) error {
 
 func (ps *profService) Unfollow(username1, username2 string) error {
 	query := ps.db.GetQuery("unfollow")
-	switch _, err := ps.db.QueryOne(query, map[string]interface{}{"username1": username1, "username2": username2}); err {
-	case nil:
-		return nil
-	case io.EOF:
-		return UsernameNotFoundErr
+	_, err := ps.db.QueryOne(query, map[string]interface{}{"username1": username1, "username2": username2})
+	switch err {
+	case ErrNotFound:
+		return ErrUsernameNotFound
 	default:
 		return err
 	}
@@ -108,22 +113,27 @@ func (ps *profService) Post(username, source, title, desc string, tags []string)
 	query := ps.db.GetQuery("post")
 	artID := helper.DefaultCharset.RandomStr(30)
 
-	switch err := ps.db.Exe(query, map[string]interface{}{
+	_, err := ps.db.QueryOne(query, map[string]interface{}{
 		"username":      username,
 		"artID":         artID,
 		"title":         title,
 		"desc":          desc,
 		"tags":          tags,
 		"displaySource": source,
-	}); err {
-	case nil:
-		return nil
+	})
+	switch err {
+	case ErrNotFound:
+		return ErrUsernameNotFound
 	default:
 		return err
 	}
 }
 
 func (ps *profService) GetPosts(username string, count int, cursur int64) (posts []post, nextCursur int64, hasNextPage bool, err error) {
+
+	if ps.auth.IsUniqueUsername(username) {
+		return nil, 0, false, ErrUsernameNotFound
+	}
 
 	if cursur <= 0 {
 		cursur = time.Now().UnixNano()
@@ -167,6 +177,10 @@ func (ps *profService) GetPosts(username string, count int, cursur int64) (posts
 }
 
 func (ps *profService) GetTimeline(username string, count int, cursur int64) (posts []post, nextCursur int64, hasNextPage bool, err error) {
+
+	if ps.auth.IsUniqueUsername(username) {
+		return nil, 0, false, ErrUsernameNotFound
+	}
 
 	if cursur <= 0 {
 		cursur = time.Now().UnixNano()
