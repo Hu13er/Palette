@@ -11,6 +11,7 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"github.com/sirupsen/logrus"
 	"gitlab.com/NagByte/Palette/service/auth"
 	"gitlab.com/NagByte/Palette/service/common"
 )
@@ -24,7 +25,7 @@ func (ps *profService) getProfileHandler(w http.ResponseWriter, r *http.Request)
 	switch prof, err := ps.GetProfile(he); err {
 	case nil:
 		response.profile = prof
-	case ErrUsernameNotFound:
+	case ErrNotFound:
 		w.WriteHeader(common.StatusBadRequestError)
 		jsonEncoder.Encode(responseUserNotFound)
 		return
@@ -75,7 +76,7 @@ func (ps *profService) updateProfileHandler(w http.ResponseWriter, r *http.Reque
 
 	switch err := ps.UpdateProfile(user, form.FullName, form.Bio, form.Location); err {
 	case nil:
-	case ErrUsernameNotFound:
+	case ErrNotFound:
 		w.WriteHeader(common.StatusBadRequestError)
 		jsonEncoder.Encode(responseUserNotFound)
 	default:
@@ -92,7 +93,7 @@ func (ps *profService) followHandler(w http.ResponseWriter, r *http.Request) {
 
 	switch err := ps.Follow(me, he); err {
 	case nil:
-	case ErrUsernameNotFound:
+	case ErrNotFound:
 		w.WriteHeader(common.StatusBadRequestError)
 		jsonEncoder.Encode(responseUserNotFound)
 	default:
@@ -108,7 +109,7 @@ func (ps *profService) unfollowHandler(w http.ResponseWriter, r *http.Request) {
 
 	switch err := ps.Unfollow(me, he); err {
 	case nil:
-	case ErrUsernameNotFound:
+	case ErrNotFound:
 		w.WriteHeader(common.StatusBadRequestError)
 		jsonEncoder.Encode(responseUserNotFound)
 	default:
@@ -132,12 +133,37 @@ func (ps *profService) postHandler(w http.ResponseWriter, r *http.Request) {
 
 	switch err := ps.Post(me, form.FileToken, form.Title, form.Desc, form.Tags); err {
 	case nil:
-	case ErrUsernameNotFound:
+	case ErrNotFound:
 		w.WriteHeader(common.StatusBadRequestError)
 		jsonEncoder.Encode(responseUserNotFound)
 	default:
 		w.WriteHeader(common.StatusInternalServerError)
 		jsonEncoder.Encode(common.ResponseInternalServerError)
+	}
+}
+
+func (ps *profService) likePostHandler(w http.ResponseWriter, r *http.Request) {
+	jsonEncoder := json.NewEncoder(w)
+	jsonDecoder := json.NewDecoder(r.Body)
+
+	form := ArtTokenForm{}
+	if err := jsonDecoder.Decode(&form); err != nil {
+		w.WriteHeader(common.StatusBadRequestError)
+		jsonEncoder.Encode(common.ResponseBadRequest)
+		return
+	}
+
+	me := auth.GetUsername(r)
+
+	switch err := ps.Like(me, form.ArtID); err {
+	case nil:
+	case ErrNotFound:
+		w.WriteHeader(common.StatusBadRequestError)
+		jsonEncoder.Encode(responsePostNotFound)
+	default:
+		w.WriteHeader(common.StatusInternalServerError)
+		jsonEncoder.Encode(common.ResponseInternalServerError)
+		logrus.Errorln(err)
 	}
 }
 
@@ -160,7 +186,7 @@ func (ps *profService) getPostsHandler(w http.ResponseWriter, r *http.Request) {
 			HasNextPage:    hasNextPage,
 			NextPageCursur: nextCursur,
 		})
-	case ErrUsernameNotFound:
+	case ErrNotFound:
 		w.WriteHeader(common.StatusBadRequestError)
 		jsonEncoder.Encode(responseUserNotFound)
 	default:
@@ -189,7 +215,7 @@ func (ps *profService) getTimelineHandler(w http.ResponseWriter, r *http.Request
 			HasNextPage:    hasNextPage,
 			NextPageCursur: nextCursur,
 		})
-	case ErrUsernameNotFound:
+	case ErrNotFound:
 		w.WriteHeader(common.StatusBadRequestError)
 		jsonEncoder.Encode(responseUserNotFound)
 	default:

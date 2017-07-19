@@ -5,7 +5,6 @@ package prof
 \***********************************/
 
 import (
-	"errors"
 	"io"
 	"time"
 
@@ -13,8 +12,7 @@ import (
 )
 
 var (
-	ErrNotFound         = io.EOF
-	ErrUsernameNotFound = errors.New("UsernameNotFound")
+	ErrNotFound = io.EOF
 )
 
 func (ps *profService) GetProfile(username string) (profile, error) {
@@ -23,7 +21,7 @@ func (ps *profService) GetProfile(username string) (profile, error) {
 	switch err {
 	case nil:
 	case ErrNotFound:
-		return profile{}, ErrUsernameNotFound
+		return profile{}, ErrNotFound
 	default:
 		return profile{}, err
 	}
@@ -74,7 +72,7 @@ func (ps *profService) UpdateProfile(username, fullName, bio, location string) e
 	_, err := ps.db.QueryOne(query, map[string]interface{}{"username": username, "change": change})
 	switch err {
 	case ErrNotFound:
-		return ErrUsernameNotFound
+		return ErrNotFound
 	default:
 		return err
 	}
@@ -93,7 +91,7 @@ func (ps *profService) Follow(username1, username2 string) error {
 	_, err := ps.db.QueryOne(query, map[string]interface{}{"username1": username1, "username2": username2})
 	switch err {
 	case ErrNotFound:
-		return ErrUsernameNotFound
+		return ErrNotFound
 	default:
 		return err
 	}
@@ -104,7 +102,7 @@ func (ps *profService) Unfollow(username1, username2 string) error {
 	_, err := ps.db.QueryOne(query, map[string]interface{}{"username1": username1, "username2": username2})
 	switch err {
 	case ErrNotFound:
-		return ErrUsernameNotFound
+		return ErrNotFound
 	default:
 		return err
 	}
@@ -124,16 +122,26 @@ func (ps *profService) Post(username, source, title, desc string, tags []string)
 	})
 	switch err {
 	case ErrNotFound:
-		return ErrUsernameNotFound
+		return ErrNotFound
 	default:
 		return err
 	}
 }
 
+func (ps *profService) Like(username, artID string) error {
+	query := ps.db.GetQuery("like")
+
+	_, err := ps.db.QueryOne(query, map[string]interface{}{
+		"username": username,
+		"artID":    artID,
+	})
+	return err
+}
+
 func (ps *profService) GetPosts(username string, count int, cursur int64) (posts []post, nextCursur int64, hasNextPage bool, err error) {
 
 	if ps.auth.IsUniqueUsername(username) {
-		return nil, 0, false, ErrUsernameNotFound
+		return nil, 0, false, ErrNotFound
 	}
 
 	if cursur <= 0 {
@@ -180,7 +188,7 @@ func (ps *profService) GetPosts(username string, count int, cursur int64) (posts
 func (ps *profService) GetTimeline(username string, count int, cursur int64) (posts []post, nextCursur int64, hasNextPage bool, err error) {
 
 	if ps.auth.IsUniqueUsername(username) {
-		return nil, 0, false, ErrUsernameNotFound
+		return nil, 0, false, ErrNotFound
 	}
 
 	if cursur <= 0 {

@@ -6,6 +6,7 @@ import (
 
 var (
 	responseUserNotFound = common.ErrorJSONResponse{ErrorDescription: "userNotFound"}
+	responsePostNotFound = common.ErrorJSONResponse{ErrorDescription: "postNotFound"}
 )
 
 type Pager struct {
@@ -36,4 +37,8 @@ type PostForm struct {
 
 type CursurForm struct {
 	Cursur int64 `json:"cursur"`
+}
+
+type ArtTokenForm struct {
+	ArtID string `json:"artID"`
 }

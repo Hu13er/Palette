@@ -164,7 +164,29 @@ var queries = map[string]string{
 			lu.displaySource = {displaySource}
 		WITH lu, collect(secondlatestupdate) AS seconds
 		FOREACH (x IN seconds | CREATE (lu)-[:Next]->(x))
-		RETURN u;
+		RETURN lu;
+	`,
+	"like": `
+		MATCH (u:User)-[:BIND]-(profile:Profile) WHERE u.username = {username}
+		WITH profile
+		MATCH (post:Post) WHERE post.artID = {artID}
+		MERGE (profile)-[r1:OWN]->(like:Like)-[r2:THAT]->(post)
+			ON CREATE SET
+				post.like_count = post.like_count + 1,
+				r1.created_at = timestamp(),
+				r2.created_at = timestamp(),
+				like.flag = 1 // for if like statement
+		
+		WITH post, profile, like
+
+		MATCH (like { flag: 1 })
+		OPTIONAL MATCH (post)-[r:LIKED_BY]-(secondLatestUpdate)
+		DELETE r
+		CREATE (post)-[:LIKED_BY]->(like)
+		WITH like, collect(secondLatestUpdate) AS seconds
+		FOREACH (x IN seconds | CREATE (like)-[:NEXT]->(x))
+		REMOVE like.flag
+		RETURN like
 	`,
 	"getPosts": `
 		MATCH (u:User)-[:BIND]-(p:Profile) WHERE u.username = {username}
