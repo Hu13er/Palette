@@ -138,6 +138,16 @@ func (ps *profService) Like(username, artID string) error {
 	return err
 }
 
+func (ps *profService) Dislike(username, artID string) error {
+	query := ps.db.GetQuery("dislike")
+
+	_, err := ps.db.QueryOne(query, map[string]interface{}{
+		"username": username,
+		"artID":    artID,
+	})
+	return err
+}
+
 func (ps *profService) GetPosts(username string, count int, cursur int64) (posts []post, nextCursur int64, hasNextPage bool, err error) {
 
 	if ps.auth.IsUniqueUsername(username) {

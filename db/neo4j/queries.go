@@ -137,9 +137,10 @@ var queries = map[string]string{
 		MATCH (post:Post) WHERE post.artID = {artID}
 		MERGE (profile)-[r1:OWN]->(like:Like)-[r2:THAT]->(post)
 			ON CREATE SET
-				post.like_count = post.like_count + 1,
+				post.likes_count = post.likes_count + 1,
 				r1.created_at = timestamp(),
 				r2.created_at = timestamp(),
+				like.created_at = timestamp(),
 				like.flag = 1 // for if like statement
 		
 		WITH post, profile, like
@@ -152,6 +153,35 @@ var queries = map[string]string{
 		FOREACH (x IN seconds | CREATE (like)-[:NEXT]->(x))
 		REMOVE like.flag
 		RETURN like
+	`,
+	"dislike": `
+		MATCH (u:User)-[:BIND]-(prof:Profile) WHERE u.username = {username}
+		WITH prof
+		MATCH (post:Post) WHERE post.artID = {artID}
+		RETURN TRUE
+		
+		UNION
+
+		MATCH (prof)-[:OWN]-(like:Like)-[:THAT]-(post)
+		SET post.likes_count = post.likes_count - 1
+
+		WITH like
+
+		OPTIONAL MATCH (like)-[:NEXT]->(next)
+		OPTIONAL MATCH (first)-[:LIKE_BY]->(like)
+		OPTIONAL MATCH (prev)-[:NEXT]->(like)
+        
+        WITH like, collect(next) AS next, collect(first) AS first, collect(prev) AS prev
+
+		FOREACH (x IN next | 
+			FOREACH (y IN first | CREATE (y)-[:LIKED_BY]->(x))
+		)
+		FOREACH (x IN next | 
+			FOREACH (y IN prev | CREATE (y)-[:NEXT]->(x))
+		)
+		DETACH DELETE like
+
+		RETURN TRUE;
 	`,
 	"getPosts": `
 		MATCH (u:User)-[:BIND]-(p:Profile) WHERE u.username = {username}

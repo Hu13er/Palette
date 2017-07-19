@@ -167,6 +167,31 @@ func (ps *profService) likePostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (ps *profService) dislikeHandler(w http.ResponseWriter, r *http.Request) {
+	jsonEncoder := json.NewEncoder(w)
+	jsonDecoder := json.NewDecoder(r.Body)
+
+	form := ArtTokenForm{}
+	if err := jsonDecoder.Decode(&form); err != nil {
+		w.WriteHeader(common.StatusBadRequestError)
+		jsonEncoder.Encode(common.ResponseBadRequest)
+		return
+	}
+
+	me := auth.GetUsername(r)
+
+	switch err := ps.Dislike(me, form.ArtID); err {
+	case nil:
+	case ErrNotFound:
+		w.WriteHeader(common.StatusBadRequestError)
+		jsonEncoder.Encode(responsePostNotFound)
+	default:
+		w.WriteHeader(common.StatusInternalServerError)
+		jsonEncoder.Encode(common.ResponseInternalServerError)
+		logrus.Errorln(err)
+	}
+}
+
 func (ps *profService) getPostsHandler(w http.ResponseWriter, r *http.Request) {
 	jsonEncoder := json.NewEncoder(w)
 	jsonDecoder := json.NewDecoder(r.Body)

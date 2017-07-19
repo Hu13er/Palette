@@ -36,6 +36,7 @@ func New(auth auth.Auth, fs fileServer.FileServer, db wrapper.Database) *profSer
 
 	router.HandleFunc(service.baseURI+"/newPost/", service.auth.AuthenticationNeededMiddleware(service.postHandler)).Methods("POST")
 	router.HandleFunc(service.baseURI+"/likePost/", service.auth.AuthenticationNeededMiddleware(service.likePostHandler)).Methods("POST")
+	router.HandleFunc(service.baseURI+"/dislikePost/", service.auth.AuthenticationNeededMiddleware(service.dislikeHandler)).Methods("POST")
 	router.HandleFunc(service.baseURI+"/getPosts/{username}/", service.auth.AuthenticationNeededMiddleware(service.getPostsHandler)).Methods("POST")
 	router.HandleFunc(service.baseURI+"/getTimeline/", service.auth.AuthenticationNeededMiddleware(service.getTimelineHandler)).Methods("POST")
 
