@@ -2,41 +2,6 @@ package neo4j
 
 // Now this is for Neo4J.
 var queries = map[string]string{
-	// Add Version:
-	"releaseVersion": `
-		CREATE (v:Version { version: {version}, forced: {forced} })
-		RETURN v;
-	`,
-	// Check Version:
-	"getAllVersion": `
-		MATCH (ver:Version)
-		WHERE ver.forced = TRUE
-		RETURN ver ORDER BY ver.version DESC;
-	`,
-	"getAllForcedVersion": `
-		MATCH (v:Version)
-		RETURN v ORDER BY v.version DESC;
-	`,
-	// SMS Verification:
-	"mergeVerificationRequest": `
-		MERGE (vr:Verification { phoneNumber: {phoneNumber} })
-		SET 
-			vr.code        = {code},
-			vr.token       = {token},
-			vr.verified    = FALSE, 
-			vr.ttl         = timestamp();
-	`,
-	"verifyRequest": `
-		MATCH (vr:Verification)
-		WHERE vr.phoneNumber = {phoneNumber} AND vr.code = {code}
-		SET vr.verified = TRUE
-		RETURN vr.token;
-	`,
-	"isVerified": `
-		MATCH (vr:Verification)
-		WHERE vr.token = {token}
-		RETURN vr.verified, vr.phoneNumber;
-	`,
 	// Auth:
 	"touchDevice": `
 		MERGE (device:Device { uid: {uid} })
