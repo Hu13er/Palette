@@ -6,7 +6,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 
-	"gitlab.com/NagByte/Palette/common"
 	"gitlab.com/NagByte/Palette/db"
 	"gitlab.com/NagByte/Palette/service/auth"
 	"gitlab.com/NagByte/Palette/service/checkVersion"
@@ -44,16 +43,8 @@ func StartServing() {
 	var handler http.Handler = handleServices(services)
 	log.Infoln("Start Serving")
 
-	if common.ConfigBool("DEBUG") {
-		log.Warnln("TURN OFF HTTP BODY AND HEADER LOGGER ON PRODUCT")
-
-		writer := logrus.StandardLogger().WriterLevel(logrus.DebugLevel)
-
-		handler = requestURILoggerMiddleware(writer, handler)
-		handler = requestHeaderLoggerMiddleware(writer, handler)
-		handler = requestBodyLoggerMiddleware(writer, handler)
-		handler = responseBodyLoggerMiddleware(writer, handler)
-	}
+	writer := logrus.StandardLogger().WriterLevel(logrus.DebugLevel)
+	handler = requestURILoggerMiddleware(writer, handler)
 
 	log.Fatalln(
 		http.ListenAndServe(":2128", handler),
