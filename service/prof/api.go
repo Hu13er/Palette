@@ -148,6 +148,51 @@ func (ps *profService) Dislike(username, artID string) error {
 	return err
 }
 
+func (ps *profService) ensureArtID(artID string) bool {
+	return true
+}
+
+func (ps *profService) GetLikes(artID string, count int, cursur int64) (usernames []string, nextCursur int64, hasNextPage bool, err error) {
+
+	if !ps.ensureArtID(artID) {
+		return nil, 0, false, ErrNotFound
+	}
+
+	if cursur <= 0 {
+		cursur = time.Now().UnixNano()
+	}
+
+	query := ps.db.GetQuery("getLikes")
+
+	result, err := ps.db.QueryAll(query, map[string]interface{}{
+		"artID":  artID,
+		"count":  count + 1,
+		"cursur": cursur,
+	})
+
+	switch err {
+	case nil:
+
+		var lastCursur int64
+
+		for _, v := range result {
+			lastCursur = v[1].(int64)
+			username := v[0].(string)
+			usernames = append(usernames, username)
+		}
+
+		nextCursur = lastCursur - 1
+		hasNextPage = len(usernames) > count
+		if !hasNextPage {
+			nextCursur = -1
+		}
+
+		return usernames, nextCursur, hasNextPage, nil
+	default:
+		return nil, -1, false, err
+	}
+}
+
 func (ps *profService) GetPosts(username string, count int, cursur int64) (posts []post, nextCursur int64, hasNextPage bool, err error) {
 
 	if ps.auth.IsUniqueUsername(username) {
@@ -159,16 +204,19 @@ func (ps *profService) GetPosts(username string, count int, cursur int64) (posts
 	}
 	query := ps.db.GetQuery("getPosts")
 
-	switch result, err := ps.db.QueryAll(query, map[string]interface{}{
+	result, err := ps.db.QueryAll(query, map[string]interface{}{
 		"username": username,
 		"count":    count + 1,
 		"cursur":   cursur,
-	}); err {
+	})
+
+	switch err {
 	case nil:
+		var lastCursur int64
 		for _, v := range result {
 			conv := v[0].(map[string]interface{})
 
-			posts = append(posts, post{
+			post := post{
 				ArtID:         helper.SafeMap(conv, "artID", "").(string),
 				Title:         helper.SafeMap(conv, "title", "").(string),
 				Desc:          helper.SafeMap(conv, "desc", "").(string),
@@ -181,15 +229,18 @@ func (ps *profService) GetPosts(username string, count int, cursur int64) (posts
 					Small: ps.fs.SmallDownloadURL(helper.SafeMap(conv, "displaySource", "").(string)),
 					Large: ps.fs.LargeDownloadURL(helper.SafeMap(conv, "displaySource", "").(string)),
 				},
-			})
+			}
+			lastCursur = post.Date
+			posts = append(posts, post)
 		}
 
-		nextCursur = 0
-		if len(posts) > 0 {
-			nextCursur = posts[len(posts)-1].Date - 1
+		nextCursur = lastCursur - 1
+		hasNextPage = len(posts) > count
+		if !hasNextPage {
+			nextCursur = -1
 		}
 
-		return posts, nextCursur, len(posts) >= count, nil
+		return posts, nextCursur, hasNextPage, nil
 	default:
 		return nil, nextCursur, false, err
 	}

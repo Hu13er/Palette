@@ -183,6 +183,11 @@ var queries = map[string]string{
 
 		RETURN TRUE;
 	`,
+	"getLikes": `
+		MATCH (post:Post) WHERE post.artID = {artID}
+		MATCH (post)-[:LIKED_BY]-(start:Like)-[:NEXT*0..]-(like)-[:OWN]-(:Profile)-[:BIND]-(user:User) WHERE like.created_at < {cursur}
+		RETURN user.username, like.created_at ORDER BY like.created_at DESC LIMIT {count};
+	`,
 	"getPosts": `
 		MATCH (u:User)-[:BIND]-(p:Profile) WHERE u.username = {username}
 		WITH p
