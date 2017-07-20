@@ -58,12 +58,12 @@ func (fs *fileServ) SmallDownloadURL(fileToken string) string {
 	if fileToken == "" {
 		return ""
 	}
-	return fmt.Sprintf("%s/download/small/%s/", fs.baseURI, fileToken)
+	return fmt.Sprintf("%s/%s/small/", fs.baseURI, fileToken)
 }
 
 func (fs *fileServ) LargeDownloadURL(fileToken string) string {
 	if fileToken == "" {
 		return ""
 	}
-	return fmt.Sprintf("%s/download/large/%s/", fs.baseURI, fileToken)
+	return fmt.Sprintf("%s/%s/large/", fs.baseURI, fileToken)
 }

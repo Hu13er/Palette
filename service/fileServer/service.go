@@ -25,12 +25,23 @@ func New(db wrapper.Database, auth auth.Auth) *fileServ {
 	fs.baseURI = "/storage"
 
 	router := mux.NewRouter()
-	router.HandleFunc(fs.baseURI+"/upload/", common.AddJSONContentType(fs.uploadHandler)).
-		Methods("POST")
-	router.HandleFunc(fs.baseURI+"/download/small/{fileToken}/", fs.downloadHandler).
-		Methods("GET")
-	router.HandleFunc(fs.baseURI+"/download/large/{fileToken}/", fs.downloadHandler).
-		Methods("GET")
+	// Upload images
+	router.HandleFunc(
+		fs.baseURI+"/",
+		common.AddJSONContentType(fs.uploadHandler),
+	).Methods("PUT")
+
+	// Download small size
+	router.HandleFunc(
+		fs.baseURI+"/{fileToken}/small/",
+		fs.downloadHandler,
+	).Methods("GET")
+
+	// Download Large size
+	router.HandleFunc(
+		fs.baseURI+"/{fileToken}/large/",
+		fs.downloadHandler,
+	).Methods("GET")
 
 	fs.handler = router
 

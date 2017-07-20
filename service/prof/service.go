@@ -20,25 +20,76 @@ type profService struct {
 	fs   fileServer.FileServer
 }
 
-func New(auth auth.Auth, fs fileServer.FileServer, db wrapper.Database) *profService {
+func New(authen auth.Auth, fs fileServer.FileServer, db wrapper.Database) *profService {
 	service := &profService{}
 	service.db = db
-	service.auth = auth
+	service.auth = authen
 	service.fs = fs
 	service.baseURI = "/prof"
 
 	router := mux.NewRouter()
-	router.HandleFunc(service.baseURI+"/getProfile/{username}/", service.auth.AuthenticationNeededMiddleware(service.getProfileHandler)).Methods("GET")
-	router.HandleFunc(service.baseURI+"/updateProfile/", service.auth.AuthenticationNeededMiddleware(service.updateProfileHandler)).Methods("POST")
 
-	router.HandleFunc(service.baseURI+"/follow/{username}/", service.auth.AuthenticationNeededMiddleware(service.followHandler)).Methods("POST")
-	router.HandleFunc(service.baseURI+"/unfollow/{username}/", service.auth.AuthenticationNeededMiddleware(service.unfollowHandler)).Methods("POST")
+	// Gets this profile
+	router.HandleFunc(
+		service.baseURI+"/profile/",
+		service.auth.AuthenticationNeededMiddleware(
+			func(w http.ResponseWriter, r *http.Request) {
+				mux.Vars(r)["username"] = auth.GetUsername(r)
+				service.getProfileHandler(w, r)
+			}),
+	).Methods("GET")
 
-	router.HandleFunc(service.baseURI+"/newPost/", service.auth.AuthenticationNeededMiddleware(service.postHandler)).Methods("POST")
-	router.HandleFunc(service.baseURI+"/likePost/", service.auth.AuthenticationNeededMiddleware(service.likePostHandler)).Methods("POST")
-	router.HandleFunc(service.baseURI+"/dislikePost/", service.auth.AuthenticationNeededMiddleware(service.dislikeHandler)).Methods("POST")
-	router.HandleFunc(service.baseURI+"/getPosts/{username}/", service.auth.AuthenticationNeededMiddleware(service.getPostsHandler)).Methods("POST")
-	router.HandleFunc(service.baseURI+"/getTimeline/", service.auth.AuthenticationNeededMiddleware(service.getTimelineHandler)).Methods("POST")
+	// Update this profile
+	router.HandleFunc(
+		service.baseURI+"/profile/",
+		service.auth.AuthenticationNeededMiddleware(service.updateProfileHandler),
+	).Methods("POST")
+
+	// Gets a usernames's profile
+	router.HandleFunc(
+		service.baseURI+"/profile/{username}/",
+		service.auth.AuthenticationNeededMiddleware(service.getProfileHandler),
+	).Methods("GET")
+
+	// Gets timeline
+	router.HandleFunc(
+		service.baseURI+"/timeline/",
+		service.auth.AuthenticationNeededMiddleware(service.getTimelineHandler),
+	).Methods("GET")
+
+	// Gets this user's posts
+	router.HandleFunc(
+		service.baseURI+"/posts/",
+		service.auth.AuthenticationNeededMiddleware(
+			func(w http.ResponseWriter, r *http.Request) {
+				mux.Vars(r)["username"] = auth.GetUsername(r)
+				service.getPostsHandler(w, r)
+			}),
+	).Methods("GET")
+
+	// Gets username's posts
+	router.HandleFunc(
+		service.baseURI+"/posts/{username}/",
+		service.auth.AuthenticationNeededMiddleware(service.getPostsHandler),
+	).Methods("GET")
+
+	// Adds new post
+	router.HandleFunc(
+		service.baseURI+"/posts/",
+		service.auth.AuthenticationNeededMiddleware(service.postHandler),
+	).Methods("PUT")
+
+	// Like and Dislike a post
+	router.HandleFunc(
+		service.baseURI+"/post/{artID}/likes/",
+		service.auth.AuthenticationNeededMiddleware(service.likePostHandler),
+	).Methods("PUT", "DELETE")
+
+	// Follow and unfollow someone
+	router.HandleFunc(
+		service.baseURI+"/follow/{username}/",
+		service.auth.AuthenticationNeededMiddleware(service.followHandler),
+	).Methods("PUT", "DELETE")
 
 	service.handler = router
 	service.handler = common.JSONContentTypeHandler{Handler: service.handler}

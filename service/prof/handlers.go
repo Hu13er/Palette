@@ -91,23 +91,17 @@ func (ps *profService) followHandler(w http.ResponseWriter, r *http.Request) {
 	me := auth.GetUsername(r)
 	he := mux.Vars(r)["username"]
 
-	switch err := ps.Follow(me, he); err {
-	case nil:
-	case ErrNotFound:
-		w.WriteHeader(common.StatusBadRequestError)
-		jsonEncoder.Encode(responseUserNotFound)
+	var do func(string, string) error
+	switch r.Method {
+	case "PUT":
+		do = ps.Follow
+	case "DELETE":
+		do = ps.Unfollow
 	default:
-		w.WriteHeader(common.StatusInternalServerError)
-		jsonEncoder.Encode(common.ResponseInternalServerError)
+		return
 	}
-}
 
-func (ps *profService) unfollowHandler(w http.ResponseWriter, r *http.Request) {
-	jsonEncoder := json.NewEncoder(w)
-	me := auth.GetUsername(r)
-	he := mux.Vars(r)["username"]
-
-	switch err := ps.Unfollow(me, he); err {
+	switch err := do(me, he); err {
 	case nil:
 	case ErrNotFound:
 		w.WriteHeader(common.StatusBadRequestError)
@@ -144,43 +138,21 @@ func (ps *profService) postHandler(w http.ResponseWriter, r *http.Request) {
 
 func (ps *profService) likePostHandler(w http.ResponseWriter, r *http.Request) {
 	jsonEncoder := json.NewEncoder(w)
-	jsonDecoder := json.NewDecoder(r.Body)
 
-	form := ArtTokenForm{}
-	if err := jsonDecoder.Decode(&form); err != nil {
-		w.WriteHeader(common.StatusBadRequestError)
-		jsonEncoder.Encode(common.ResponseBadRequest)
-		return
-	}
-
+	artID := mux.Vars(r)["artID"]
 	me := auth.GetUsername(r)
 
-	switch err := ps.Like(me, form.ArtID); err {
-	case nil:
-	case ErrNotFound:
-		w.WriteHeader(common.StatusBadRequestError)
-		jsonEncoder.Encode(responsePostNotFound)
+	var do func(string, string) error
+	switch r.Method {
+	case "PUT":
+		do = ps.Like
+	case "DELETE":
+		do = ps.Dislike
 	default:
-		w.WriteHeader(common.StatusInternalServerError)
-		jsonEncoder.Encode(common.ResponseInternalServerError)
-		logrus.Errorln(err)
-	}
-}
-
-func (ps *profService) dislikeHandler(w http.ResponseWriter, r *http.Request) {
-	jsonEncoder := json.NewEncoder(w)
-	jsonDecoder := json.NewDecoder(r.Body)
-
-	form := ArtTokenForm{}
-	if err := jsonDecoder.Decode(&form); err != nil {
-		w.WriteHeader(common.StatusBadRequestError)
-		jsonEncoder.Encode(common.ResponseBadRequest)
 		return
 	}
 
-	me := auth.GetUsername(r)
-
-	switch err := ps.Dislike(me, form.ArtID); err {
+	switch err := do(me, artID); err {
 	case nil:
 	case ErrNotFound:
 		w.WriteHeader(common.StatusBadRequestError)
