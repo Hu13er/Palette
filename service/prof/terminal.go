@@ -16,9 +16,11 @@ type Pager struct {
 }
 
 type UpdateProfileForm struct {
-	FullName string `json:"full_name"`
-	Bio      string `json:"bio"`
-	Location string `json:"location"`
+	FullName  string `json:"full_name"`
+	Bio       string `json:"bio"`
+	Location  string `json:"location"`
+	Wallpaper string `json:"wallpaper"`
+	Avatar    string `json:"avatar"`
 }
 
 type getProfileResponse struct {

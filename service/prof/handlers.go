@@ -74,12 +74,13 @@ func (ps *profService) updateProfileHandler(w http.ResponseWriter, r *http.Reque
 		jsonEncoder.Encode(common.ResponseInternalServerError)
 	}
 
-	switch err := ps.UpdateProfile(user, form.FullName, form.Bio, form.Location); err {
+	switch err := ps.UpdateProfile(user, form.FullName, form.Bio, form.Location, form.Avatar, form.Wallpaper); err {
 	case nil:
 	case ErrNotFound:
 		w.WriteHeader(common.StatusBadRequestError)
 		jsonEncoder.Encode(responseUserNotFound)
 	default:
+		logrus.Errorln(err)
 		w.WriteHeader(common.StatusInternalServerError)
 		jsonEncoder.Encode(common.ResponseInternalServerError)
 	}

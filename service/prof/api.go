@@ -53,7 +53,7 @@ func (ps *profService) IsFollowedBy(username1, username2 string) (bool, error) {
 	return result[0].(bool), nil
 }
 
-func (ps *profService) UpdateProfile(username, fullName, bio, location string) error {
+func (ps *profService) UpdateProfile(username, fullName, bio, location, avatar, wallpaper string) error {
 	query := ps.db.GetQuery("updateProfile")
 	change := map[string]interface{}{}
 
@@ -67,6 +67,14 @@ func (ps *profService) UpdateProfile(username, fullName, bio, location string) e
 
 	if location != "" {
 		change["location"] = location
+	}
+
+	if avatar != "" {
+		change["avatar"] = avatar
+	}
+
+	if wallpaper != "" {
+		change["wallpaper"] = wallpaper
 	}
 
 	_, err := ps.db.QueryOne(query, map[string]interface{}{"username": username, "change": change})

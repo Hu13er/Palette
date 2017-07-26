@@ -64,7 +64,9 @@ var queries = map[string]string{
 			p.bio        = "",
 			p.location   = "",
 			p.followedBy = 0,
-			p.follows    = 0
+			p.follows    = 0,
+			p.avatar     = "",
+			p.wallpaper  = ""
 
 		RETURN d;
 		`,
@@ -78,11 +80,13 @@ var queries = map[string]string{
 		MATCH (u:User) WHERE u.username = {username}
 		MERGE (u)-[:BIND]-(p:Profile)
 			ON CREATE SET 
-				u.fullName   = "",
-				u.bio        = "",
-				u.location   = "",
-				u.followedBy = 0,
-				u.follows    = 0
+				p.fullName   = "",
+				p.bio        = "",
+				p.location   = "",
+				p.followedBy = 0,
+				p.follows    = 0,
+				p.avatar     = "",
+				p.wallpaper  = ""
 		SET p += {change}
 		RETURN u;
 	`,
