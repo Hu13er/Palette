@@ -38,3 +38,7 @@ type PostForm struct {
 type CursurForm struct {
 	Cursur int64 `json:"cursur"`
 }
+
+type ArtTokenForm struct {
+	ArtID string `json:"artID"`
+}

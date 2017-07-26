@@ -46,16 +46,9 @@ func New(db wrapper.Database) *smsService {
 	service.db = &smsVerificationDB{db}
 
 	router := mux.NewRouter()
-	// Send sms verification
-	router.HandleFunc(
-		service.baseURI+"/{phoneNumber}/",
-		service.sendVerificationHandler,
-	).Methods("PUT")
-	// verify
-	router.HandleFunc(
-		service.baseURI+"/{phoneNumber}/verify/",
-		service.verifyPhoneHandler,
-	).Methods("POST")
+	router.HandleFunc(service.baseURI+"/send/", service.sendVerificationHandler).Methods("POST")
+	router.HandleFunc(service.baseURI+"/verify/", service.verifyPhoneHandler).Methods("POST")
+	router.HandleFunc(service.baseURI+"/isVerified/", service.isVerifiedHandler).Methods("POST")
 
 	service.handler = router
 
@@ -128,6 +121,21 @@ func (ss *smsService) verifyPhoneHandler(w http.ResponseWriter, r *http.Request)
 		w.WriteHeader(common.StatusInternalServerError)
 		jsonEncoder.Encode(common.ResponseInternalServerError)
 	}
+}
+
+func (ss *smsService) isVerifiedHandler(w http.ResponseWriter, r *http.Request) {
+	jsonEncoder := json.NewEncoder(w)
+	jsonDecoder := json.NewDecoder(r.Body)
+
+	var form isVerifiedRequest
+	if err := jsonDecoder.Decode(&form); err != nil {
+		w.WriteHeader(common.StatusBadRequestError)
+		jsonEncoder.Encode(common.ResponseBadRequest)
+		return
+	}
+
+	phoneNumber, ok := ss.IsVerified(form.Token)
+	jsonEncoder.Encode(isVerifiedResponse{phoneNumber, ok})
 }
 
 /*
